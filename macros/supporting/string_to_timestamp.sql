@@ -14,3 +14,7 @@
 {%- macro snowflake__string_to_timestamp(format, timestamp) -%}
     TO_TIMESTAMP('{{ timestamp }}', '{{ format }}')
 {%- endmacro -%}
+
+{%- macro sqlserver__string_to_timestamp(format, timestamp) -%}
+    CONVERT(DATETIME, '{{ timestamp }}')
+{%- endmacro -%}

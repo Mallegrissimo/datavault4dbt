@@ -90,3 +90,28 @@
 
 
 {%- endmacro -%}
+
+{%- macro sqlserver__hash_default_values(hash_function, hash_datatype) -%}
+
+    {%- set dict_result = {} -%}
+    {%- if hash_function == 'MD5' -%}
+        {%- set hash_alg = 'HASHTYPE_MD5' -%}
+        {%- set unknown_key = hash_function~'0X00000000000000000000000000000000' -%}
+        {%- set error_key = 'ffffffffffffffffffffffffffffffff' -%}
+    
+    {%- elif (hash_function == 'SHA' or hash_function == 'SHA1') -%}
+        {%- set hash_alg = "HASHBYTES('SHA1'," -%}
+        {%- set unknown_key = '0X0000000000000000000000000000000000000000' -%}
+        {%- set error_key = 'ffffffffffffffffffffffffffffffffffffffff' -%}
+    {%- elif (hash_function == 'SHA2' or hash_function == 'SHA256') -%}
+        {%- set hash_alg = 'HASHTYPE_SHA256' -%}
+        {%- set unknown_key = '0X0000000000000000000000000000000000000000000000000000000000000000' -%}
+        {%- set error_key = 'ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff' -%}
+    {%- endif -%}
+
+    {%- do dict_result.update({"hash_alg": hash_alg, "unknown_key": unknown_key, "error_key": error_key }) -%}
+
+    {{ return(dict_result | tojson ) }}
+
+
+{%- endmacro -%}

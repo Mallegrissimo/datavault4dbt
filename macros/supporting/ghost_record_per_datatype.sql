@@ -153,3 +153,32 @@
 {%- endif -%}
 
 {%- endmacro -%}
+
+
+{%- macro sqlserver__ghost_record_per_datatype(column_name, datatype, ghost_record_type, col_size) -%}
+
+{%- set beginning_of_all_times = datavault4dbt.beginning_of_all_times() -%}
+{%- set end_of_all_times = datavault4dbt.end_of_all_times() -%}
+{%- set timestamp_format = datavault4dbt.timestamp_format() -%}
+
+{%- if ghost_record_type == 'unknown' -%}
+     {%- if datatype in ['TIMESTAMP2','TIMESTAMP'] %}{{ datavault4dbt.string_to_timestamp(timestamp_format, beginning_of_all_times) }} AS {{ column_name }}
+     {% elif datatype in ['STRING','VARCHAR'] %}'(unknown)' AS {{ column_name }}
+     {% elif datatype in ['NUMBER','INT','FLOAT','DECIMAL'] %}0 AS {{ column_name }}
+     {% elif datatype in 'bit' %}CAST(0 AS BIT) AS {{ column_name }}
+     {% else %}NULL AS {{ column_name }}
+     {% endif %}
+{%- elif ghost_record_type == 'error' -%}
+     {%- if datatype in ['TIMESTAMP2','TIMESTAMP'] %}{{ datavault4dbt.string_to_timestamp(timestamp_format, end_of_all_times) }} AS {{ column_name }}
+     {% elif datatype in ['STRING','VARCHAR'] %}'(error)' AS {{ column_name }}
+     {% elif datatype in ['NUMBER','INT','FLOAT','DECIMAL'] %}-1 AS {{ column_name }}
+     {% elif datatype == 'bit' %}CAST(0 AS BIT) AS {{ column_name }}
+     {% else %}NULL AS {{ column_name }}
+      {% endif %}
+{%- else -%}
+    {%- if execute -%}
+     {{ exceptions.raise_compiler_error("Invalid Ghost Record Type. Accepted are 'unknown' and 'error'.") }}
+    {%- endif %}
+{%- endif -%}
+
+{%- endmacro -%}
